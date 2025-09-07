@@ -205,7 +205,7 @@ def gameLoop():
                     player.invulnerable=True
                     player.invulnerable_hasta=pygame.time.get_ticks()+5000
                     mensaje_velocidad="5 boosts de velocidad: Inmune por 5 segundos!"
-                    velocidad_tiempo=pygame.time.get_ticks()+3000
+                    velocidad_tiempo=pygame.time.get_ticks()+5000
             elif isinstance(choque2, Life):
                 player.vidas += 1
                 player.vidas_recolectadas += 1
@@ -225,39 +225,40 @@ def gameLoop():
         if aparicion_boss==True and boss!=0:
             boss.update()
             screen.blit(boss.surf,boss.rect)
-            if player.rect.colliderect(boss.rect) and player.invulnerable==False:
-                player.perder_vida()
-                player.invulnerable=True
-                player.invulnerable_hasta=pygame.time.get_ticks()+30000
+            if player.rect.colliderect(boss.rect):
+                if player.invulnerable==False:
+                    player.perder_vida()
+                    player.invulnerable=True
+                    player.invulnerable_hasta=pygame.time.get_ticks()+3000
                 
-                if player.vidas<=0:
-                    #si tiene 0 vidad se termina el juego
-                    player.kill()
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load("assets/perder/perder.mp3")
-                    pygame.mixer.music.play(-1)
-                    running = False
-                #si se muere, se empieza el loop de la escena de muerte
-                    accion2=gameOver()
-                    if accion2=="jugar":
-                        #si se quiere volver a jugar, debemos reiciar los datos
-                        player=Player(SCREEN_WIDTH,SCREEN_HEIGHT)
-                        enemies.empty()
-                        all_sprites.empty()
-                        all_sprites.add(player)
-                        all_sprites.add(mira)
-                        boss=0
-                        aparicion_boss=False
-                        muerte_boss=False
-                        tiempo_victoria=0
-                        puntaje=0
-                        cronometro=Tiempo()
-                        running=True
+                    if player.vidas<=0:
+                        #si tiene 0 vidad se termina el juego
+                        player.kill()       
                         pygame.mixer.music.stop()
-                        pygame.mixer.music.load("assets/musica/musica.mp3")
+                        pygame.mixer.music.load("assets/perder/perder.mp3")
                         pygame.mixer.music.play(-1)
-                    else:
-                        running=False
+                        running = False
+                    #si se muere, se empieza el loop de la escena de muerte
+                        accion2=gameOver()
+                        if accion2=="jugar":
+                            #si se quiere volver a jugar, debemos reiciar los datos
+                            player=Player(SCREEN_WIDTH,SCREEN_HEIGHT)
+                            enemies.empty()
+                            all_sprites.empty()
+                            all_sprites.add(player)
+                            all_sprites.add(mira)
+                            boss=0
+                            aparicion_boss=False
+                            muerte_boss=False
+                            tiempo_victoria=0
+                            puntaje=0
+                            cronometro=Tiempo()
+                            running=True
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.load("assets/musica/musica.mp3")
+                            pygame.mixer.music.play(-1)
+                        else:
+                            running=False
 
             for disparo in player.projectiles:
                 if boss.rect.colliderect(disparo.rect):
@@ -271,6 +272,11 @@ def gameLoop():
             
         if muerte_boss==True:
             if pygame.time.get_ticks()-tiempo_victoria>=4000:
+                #detener la musica y reproducir la de victoria
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load("assets/musica/victoria.mp3")
+                pygame.mixer.music.play(-1)
+
                 accion3= pantalla_victoria()
                 sonido_victoria.play()
                 if accion3=="jugar":
@@ -334,15 +340,16 @@ def gameLoop():
         score=letra_puntaje.render(f"Score: {puntaje}", True, (255,255,255))
         screen.blit(score, (10, 60))
 
-        if pygame.time.get_ticks()<vidas_tiempo and mensaje_vidas:
+        if pygame.time.get_ticks()<vidas_tiempo and mensaje_vidas=="3 vidas extra: Pequeño por 5 segundos!":
             texto=fuente.render(mensaje_vidas,True,(255,0,255))
             screen.blit(texto,(SCREEN_WIDTH//2-texto.get_width()//2,10))
         
-        if pygame.time.get_ticks()<velocidad_tiempo and mensaje_velocidad:
+        if pygame.time.get_ticks()<velocidad_tiempo and mensaje_velocidad=="5 boosts de velocidad: Inmune por 5 segundos!":
             texto2=fuente.render(mensaje_velocidad,True,(255,255,0))
-            screen.blit(texto2,(SCREEN_WIDTH//2-texto2.get_width()//2,SCREEN_HEIGHT-40))
+            screen.blit(texto2,(SCREEN_WIDTH//2-texto2.get_width()//2,50))
+            #SCREEN_HEIGHT-40
         
-        if pygame.time.get_ticks()<disparo_triple_tiempo and mensaje_disparo_triple:
+        if pygame.time.get_ticks()<disparo_triple_tiempo and mensaje_disparo_triple=="Dispara triple por 10 segundos!":
             texto3=fuente.render(mensaje_disparo_triple,True,(255,255,255))
             screen.blit(texto3,(SCREEN_WIDTH//2-texto3.get_width()//2,SCREEN_HEIGHT//2-texto3.get_height()//2))
 
@@ -387,8 +394,8 @@ def gameLoop():
             
             # POR HACER (2.4): Agregar evento disparo proyectil
             elif event.type==pygame.MOUSEBUTTONDOWN:
-                player.shoot(pygame.mouse.get_pos())
-                sonido_disparo.play()
+                if player.shoot(pygame.mouse.get_pos())==True:
+                    sonido_disparo.play()
 
 
         clock.tick(40)

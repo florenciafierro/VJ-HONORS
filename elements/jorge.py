@@ -84,9 +84,10 @@ class Player(pygame.sprite.Sprite):
     
     def shoot(self, mouse_pos): 
         #si aun no se cumple el tiempo del cooldown, no se puede disparar
+        #agregamos variables booeanas para que el sonido de disparo solo suene cuando sale el proyectil
         tiempo_actual=pygame.time.get_ticks()
         if tiempo_actual-self.ultimo_tiro<self.cooldown:
-            return
+            return False
         
         # POR HACER (2.3): Crear y calcular dirección proyectil
         direction=(mouse_pos[0]-self.rect.centerx, mouse_pos[1]-self.rect.centery)
@@ -110,6 +111,7 @@ class Player(pygame.sprite.Sprite):
 
         #actualizamos el tick del ultimo disparo
         self.ultimo_tiro=tiempo_actual
+        return True
     
     def perder_vida(self):
         self.vidas-=1
